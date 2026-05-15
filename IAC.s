@@ -65,7 +65,16 @@ main:
     ###########################################################################
     # Read vocabulary
     ###########################################################################
-    # TODO
+    la a0, VOCABULARY_FILENAME  # Ponteiro para o nome do ficheiro
+    la a1, VOCAB_BUFFER        # Ponteiro para o enderço do buffer
+    li a2, 1024                # numero maximo de bytes a ler
+    jal ra, read_file        #chama o read file
+    
+    la a0, VOCAB_BUFFERp
+    jal ra, print_vocabulary
+    
+     
+    
 
     ###########################################################################
     # Read input
@@ -168,7 +177,37 @@ main:
 # (in/out) a1: destination buffer
 # (in)     a2: maximum number of bytes to read
 read_file:
-    # TODO
+    addi sp, sp, -20
+    sw ra, 16(sp)    #guardo na stack o endereço de retorno
+    sw a0, 12(sp)    
+    sw a1, 8(sp) 
+    sw a2, 4(sp)  
+    
+    #Abertura do ficheiro(open)
+    lw a0, 12(sp)
+    li a1, 0
+    li a7, 1024
+    ecall
+    sw a0, 0(sp)  #salvo o file descriptor na stack
+    
+    #Leitura do ficheiro(read)
+    lw a0, 0(sp)  # restauro o fd
+    lw a1, 8(sp)   #tiro o endereço do buffer
+    lw a2, 4(sp)
+    li a7, 63
+    ecall
+    
+    #Fecho do ficheiro (close)
+    lw a0, 0(sp)
+    li a7, 57
+    ecall 
+    
+    lw ra, 16(sp)
+    addi sp, sp, 20
+    
+    jr ra #retorna para o chamador 
+    
+    
 
 # Assumes the matrix is stored in the buffer as space-separated integers.
 # Assumes columns are separated by 1 space (' '), and rows by 1 newline ('\n').
