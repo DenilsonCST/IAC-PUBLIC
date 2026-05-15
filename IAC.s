@@ -70,7 +70,7 @@ main:
     li a2, 1024                # numero maximo de bytes a ler
     jal ra, read_file        #chama o read file
     
-    la a0, VOCAB_BUFFERp
+    la a0, VOCAB_BUFFER
     jal ra, print_vocabulary
     
      
@@ -80,11 +80,22 @@ main:
     # Read input
     ###########################################################################
     # TODO
+    la a0, INPUT_FILENAME  # Ponteiro para o nome do ficheiro
+    la a1, INPUT_BUFFER        # Ponteiro para o enderço do buffer
+    li a2, 1024                # numero maximo de bytes a ler
+    jal ra, read_file        #chama o read file
+    
+    la a0, INPUT_BUFFER
+    jal ra, print_input
+    
+    
 
     ###########################################################################
     # Read W_Q matrix
     ###########################################################################
     # TODO
+   
+    
 
     ###########################################################################
     # Parse W_Q matrix from buffer
