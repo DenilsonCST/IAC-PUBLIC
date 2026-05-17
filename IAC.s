@@ -27,6 +27,7 @@
 .equ CONST_CHAR_NEWLINE 10
 .equ CONST_CHAR_HYPHEN 45
 .equ CONST_CHAR_ZERO 48
+.equ CONST_CHAR_NINE 57
 
 .data
 ###########################################################################
@@ -67,7 +68,7 @@ main:
     ###########################################################################
     la a0, VOCABULARY_FILENAME  # Ponteiro para o nome do ficheiro
     la a1, VOCAB_BUFFER        # Ponteiro para o enderço do buffer
-    li a2, 1024                # numero maximo de bytes a ler
+    li a2, CONST_BUFFER_SIZE   # numero maximo de bytes a ler
     jal ra, read_file        #chama o read file
     
     la a0, VOCAB_BUFFER
@@ -82,7 +83,7 @@ main:
     # TODO
     la a0, INPUT_FILENAME  # Ponteiro para o nome do ficheiro
     la a1, INPUT_BUFFER        # Ponteiro para o enderço do buffer
-    li a2, 1024                # numero maximo de bytes a ler
+    li a2, CONST_BUFFER_SIZE               # numero maximo de bytes a ler
     jal ra, read_file        #chama o read file
     
     la a0, INPUT_BUFFER
@@ -94,6 +95,30 @@ main:
     # Read W_Q matrix
     ###########################################################################
     # TODO
+	la a0, W_Q_FILENAME
+	la a1, MATRIX_BUFFER
+	li a2, CONST_BUFFER_SIZE
+	jal ra, read_file
+
+	la a0, W_Q_MATRIX
+	la a1, MATRIX_BUFFER
+	jal ra, parse_matrix_buffer
+
+	#A parte de baixo é só para verificação
+
+	mv t0, a1
+
+	la a0, W_Q_MATRIX
+	mv a1, t0
+	li a2, CONST_DIMENSION
+	jal ra, print_matrix
+
+
+
+
+
+
+	
    
     
 
@@ -106,6 +131,24 @@ main:
     # Read W_K matrix
     ###########################################################################
     # TODO
+	la a0, W_K_FILENAME
+	la a1, MATRIX_BUFFER
+	li a2, CONST_BUFFER_SIZE
+	jal ra, read_file
+
+	la a0, W_K_MATRIX
+	la a1, MATRIX_BUFFER
+	jal ra, parse_matrix_buffer
+
+	#A parte de baixo é só para verificação
+
+	mv t0, a1
+
+	la a0, W_K_MATRIX
+	mv a1, t0
+	li a2, CONST_DIMENSION
+	jal ra, print_matrix
+
 
     ###########################################################################
     # Parse W_K matrix from buffer
@@ -116,6 +159,23 @@ main:
     # Read W_V matrix
     ###########################################################################
     # TODO
+	la a0, W_V_FILENAME
+	la a1, MATRIX_BUFFER
+	li a2, CONST_BUFFER_SIZE
+	jal ra, read_file
+
+	la a0, W_V_MATRIX
+	la a1, MATRIX_BUFFER
+	jal ra, parse_matrix_buffer
+
+	#A parte de baixo é só para verificação
+
+	mv t0, a1
+
+	la a0, W_V_MATRIX
+	mv a1, t0
+	li a2, CONST_DIMENSION
+	jal ra, print_matrix
 
     ###########################################################################
     # Parse W_V matrix from buffer
@@ -126,6 +186,24 @@ main:
     # Read embeddings matrix
     ###########################################################################
     # TODO
+	la a0, EMBEDDINGS_FILENAME
+	la a1, MATRIX_BUFFER
+	li a2, CONST_BUFFER_SIZE
+	jal ra, read_file
+
+	la a0, EMBEDDINGS_FILENAME
+	la a1, MATRIX_BUFFER
+	jal ra, parse_matrix_buffer
+
+	#A parte de baixo é só para verificação
+
+	mv t0, a1
+
+	la a0, EMBEDDINGS_FILENAME
+	mv a1, t0
+	li a2, CONST_DIMENSION
+	jal ra, print_matrix
+
 
     ###########################################################################
     # Parse vocabulary embeddings matrix from buffer
@@ -197,7 +275,7 @@ read_file:
     #Abertura do ficheiro(open)
     lw a0, 12(sp)
     li a1, 0
-    li a7, 1024
+    li a7, CONST_SYSCALL_OPEN
     ecall
     sw a0, 0(sp)  #salvo o file descriptor na stack
     
@@ -205,12 +283,12 @@ read_file:
     lw a0, 0(sp)  # restauro o fd
     lw a1, 8(sp)   #tiro o endereço do buffer
     lw a2, 4(sp)
-    li a7, 63
+    li a7, CONST_SYSCALL_READ
     ecall
     
     #Fecho do ficheiro (close)
     lw a0, 0(sp)
-    li a7, 57
+    li a7, CONST_SYSCALL_CLOSE
     ecall 
     
     lw ra, 16(sp)
@@ -227,7 +305,77 @@ read_file:
 # (out)    a1: number of rows in the matrix (int)
 # (in)     a1: address of the buffer containing the matrix data (char*)
 parse_matrix_buffer:
-    # TODO
+	li t0, 0 #  numero
+	li t1, 0 # numero de linhas
+	li t2, 1 # flag
+
+parse_matrix_buffer_loop:
+	lb t3, 0(a1) # carater atual
+
+	li t4, CONST_CHAR_EOF
+	beq t3, t4, end   #se carater = EOF, branch to end
+
+	li t4, CONST_CHAR_HYPHEN  # t4 = -
+	beq t3, t4, change_flag # se carater = -, branch to change flag
+
+	li t4, CONST_CHAR_SPACE
+	beq t3, t4, save_number  #se carater = espaço, branch to save_number
+
+	li t4, CONST_CHAR_NEWLINE
+	beq t3, t4, new_line
+
+	li t4, CONST_CHAR_ZERO
+	blt t3, t4, next_caracter
+
+	li t4, CONST_CHAR_NINE
+	bgt t3, t4, next_caracter
+
+	li t4, 10  
+	mul t0, t0, t4 # numero * 10
+	li t4, CONST_CHAR_ZERO
+	sub t3,t3, t4  #change ASCII to digit number
+	add t0, t0, t3 # numero = numero * 10 + digito
+
+	j next_caracter
+
+next_caracter:
+	addi a1, a1, 1  #buffer++
+	j parse_matrix_buffer_loop
+
+change_flag:
+	li t4, -1
+	mul t2, t2, t4 #flag = -1
+	j next_caracter
+
+save_number:
+	mul t0, t0, t2 # coloca o numero a positivo/negativo
+	sw t0, 0(a0)  # save the number 
+	addi a0, a0, 4
+	addi a1, a1, 1  #buffer++
+	mv t0, x0 # reinicializa o numero
+	li t2, 1  # Flag = 1
+	j parse_matrix_buffer_loop
+
+new_line:
+	addi t1, t1, 1
+	j save_number
+
+end:
+	mv a1, t1
+	jr ra	
+
+
+
+
+
+
+
+	
+
+
+
+
+	
 
 # Converts the input tokens into their corresponding indices in the vocabulary.
 # (in/out) a0: address of input indices vector to fill (int*)
