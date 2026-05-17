@@ -305,6 +305,9 @@ read_file:
 # (out)    a1: number of rows in the matrix (int)
 # (in)     a1: address of the buffer containing the matrix data (char*)
 parse_matrix_buffer:
+	addi sp, sp, -4
+	sw ra, 0(sp)
+
 	li t0, 0 #  numero
 	li t1, 0 # numero de linhas
 	li t2, 1 # flag
@@ -362,6 +365,10 @@ new_line:
 
 end:
 	mv a1, t1
+	
+	lw ra, 0(sp)
+	addi sp, sp, 4
+
 	jr ra	
 
 
