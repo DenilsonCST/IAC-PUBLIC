@@ -505,12 +505,16 @@ tokens_next_vocab:
     addi s6, s6, 1
     addi s7, s7, 1
     j tokens_vocab_loop
+
+
 tokens_store_found:
     sw s7, 0(s0)
     addi s0, s0, 4
     addi s3, s3, 1
     mv s1, s5
     j tokens_next_input
+
+
 tokens_store_missing:
     li t0, -1
     sw t0, 0(s0)
@@ -518,9 +522,13 @@ tokens_store_missing:
     addi s3, s3, 1
     mv s1, s5
     j tokens_next_input
+
+
 tokens_skip_input_delim:
     addi s1, s1, 1
     j tokens_next_input
+
+
 tokens_done:
     mv a1, s3
     lw ra, 0(sp)
@@ -538,14 +546,18 @@ tokens_done:
     addi sp, sp, 48
     ret
 
-    # TODO
+    
 
 # (in/out) a0: address of the output matrix to fill (int*)
 # (in)     a1: address of the vocabulary embeddings matrix (int*)
 # (in)     a2: address of the input indices array (int*)
 # (in)     a3: number of tokens in the input (int)
+
+
 build_input_embeddings_matrix:
  li t0, 0
+
+
 build_embeddings_row_loop:
     beq t0, a3, build_embeddings_done
     lw t1, 0(a2)
@@ -554,6 +566,8 @@ build_embeddings_row_loop:
     slli t1, t1, 2
     add t1, a1, t1
     li t2, 0
+
+
 build_embeddings_col_loop:
     li t3, CONST_DIMENSION
     beq t2, t3, build_embeddings_next_row
@@ -563,6 +577,9 @@ build_embeddings_col_loop:
     addi a0, a0, 4
     addi t2, t2, 1
     j build_embeddings_col_loop
+
+
+
 build_embeddings_next_row:
     addi a2, a2, 4
     addi t0, t0, 1
@@ -570,7 +587,7 @@ build_embeddings_next_row:
 build_embeddings_done:
     ret
 
-    # TODO
+   
 
 # (in/out) a0: address of the output matrix to fill (int*)
 # (in)     a1: address of the first matrix (int*)
