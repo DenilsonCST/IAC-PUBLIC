@@ -301,7 +301,7 @@ parse_matrix_buffer_loop:
 	lb t3, 0(a1) # carater atual
 
 	li t4, CONST_CHAR_EOF
-	beq t3, t4, end   #se carater = EOF, branch to end
+	beq t3, t4, end_parse  #se carater = EOF, branch to end
 
 	li t4, CONST_CHAR_HYPHEN  # t4 = -
 	beq t3, t4, change_flag # se carater = -, branch to change flag
@@ -348,7 +348,7 @@ new_line:
 	addi t1, t1, 1
 	j save_number
 
-end:
+end_parse:
 	mv a1, t1
 
 	lw ra, 0(sp)
@@ -686,7 +686,7 @@ loop:
 	mv a2, s6
 	li a3, 4
 	mv a1,t0  # a1 = address of first vector
-	bge s2, s4, end # if index > #tokens , branch
+	bge s2, s4, end_decide # if index > #tokens , branch
 	jal ra, dot 
 	bgt a1, s3, save # if a1 > max, save
 	j next 
@@ -702,7 +702,7 @@ next:
 	mv a2, s6 
 	j loop
 
-end:
+end_decide:
 	lw ra, 36(sp)
 	lw a0, 32(sp)
 	lw a1, 28(sp)
