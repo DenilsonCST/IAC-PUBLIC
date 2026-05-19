@@ -73,10 +73,7 @@ main:
     
     la a0, VOCAB_BUFFER
     jal ra, print_vocabulary
-    
-     
-    
-
+  
     ###########################################################################
     # Read input
     ###########################################################################
@@ -88,7 +85,6 @@ main:
     
     la a0, INPUT_BUFFER
     jal ra, print_input
-    
     
 
     ###########################################################################
@@ -112,15 +108,6 @@ main:
 	mv a1, t0
 	li a2, CONST_DIMENSION
 	jal ra, print_matrix
-
-
-
-
-
-
-	
-   
-    
 
     ###########################################################################
     # Parse W_Q matrix from buffer
@@ -148,7 +135,6 @@ main:
 	mv a1, t0
 	li a2, CONST_DIMENSION
 	jal ra, print_matrix
-
 
     ###########################################################################
     # Parse W_K matrix from buffer
@@ -223,7 +209,7 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    # TODO
+    
 
     ###########################################################################
     # Build matrix K
@@ -296,8 +282,6 @@ read_file:
     
     jr ra #retorna para o chamador 
     
-    
-
 # Assumes the matrix is stored in the buffer as space-separated integers.
 # Assumes columns are separated by 1 space (' '), and rows by 1 newline ('\n').
 # Assumes only signed integers are provided.
@@ -373,23 +357,125 @@ end:
 
 
 
-
-
-
-
-	
-
-
-
-
-	
-
 # Converts the input tokens into their corresponding indices in the vocabulary.
 # (in/out) a0: address of input indices vector to fill (int*)
 # (out)    a1: size of input indices vector (number of tokens in input)
 # (in)     a2: address to input buffer
 # (in)     a3: address to vocabulary buffer
 tokens_to_indices:
+ addi sp, sp, -48
+    sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+    sw s4, 20(sp)
+    sw s5, 24(sp)
+    sw s6, 28(sp)
+    sw s7, 32(sp)
+    sw s8, 36(sp)
+    sw s9, 40(sp)
+    sw s10, 44(sp)
+    mv s0, a0
+    mv s1, a2
+    mv s2, a3
+    li s3, 0
+
+tokens_next_input:
+    lb t0, 0(s1)
+    beq t0, zero, tokens_done
+    li t1, CONST_CHAR_NEWLINE
+    beq t0, t1, tokens_skip_input_delim
+    li t1, CONST_CHAR_SPACE
+    beq t0, t1, tokens_skip_input_delim
+    li t1, 13
+    beq t0, t1, tokens_skip_input_delim
+    mv s4, s1
+    mv s5, s1
+
+tokens_find_input_end:
+    lb t0, 0(s5)
+    beq t0, zero, tokens_search_vocab
+    li t1, CONST_CHAR_NEWLINE
+    beq t0, t1, tokens_search_vocab
+    li t1, CONST_CHAR_SPACE
+    beq t0, t1, tokens_search_vocab
+    li t1, 13
+    beq t0, t1, tokens_search_vocab
+    addi s5, s5, 1
+    j tokens_find_input_end
+
+tokens_search_vocab:
+    mv s6, s2
+    li s7, 0
+tokens_vocab_loop:
+    lb t0, 0(s6)
+    beq t0, zero, tokens_store_missing
+    mv s8, s6
+    mv s9, s4
+    mv s10, s8
+tokens_compare_loop:
+    beq s9, s5, tokens_check_vocab_end
+    lb t0, 0(s9)
+    lb t1, 0(s10)
+    bne t0, t1, tokens_vocab_no_match
+    addi s9, s9, 1
+    addi s10, s10, 1
+    j tokens_compare_loop
+
+tokens_check_vocab_end:
+    lb t1, 0(s10)
+    beq t1, zero, tokens_store_found
+    li t0, CONST_CHAR_NEWLINE
+    beq t1, t0, tokens_store_found
+    li t0, CONST_CHAR_SPACE
+    beq t1, t0, tokens_store_found
+    li t0, 13
+    beq t1, t0, tokens_store_found
+tokens_vocab_no_match:
+    lb t0, 0(s6)
+    beq t0, zero, tokens_store_missing
+    li t1, CONST_CHAR_NEWLINE
+    beq t0, t1, tokens_next_vocab
+    addi s6, s6, 1
+    j tokens_vocab_no_match
+tokens_next_vocab:
+    addi s6, s6, 1
+    addi s7, s7, 1
+    j tokens_vocab_loop
+tokens_store_found:
+    sw s7, 0(s0)
+    addi s0, s0, 4
+    addi s3, s3, 1
+    mv s1, s5
+    j tokens_next_input
+tokens_store_missing:
+    li t0, -1
+    sw t0, 0(s0)
+    addi s0, s0, 4
+    addi s3, s3, 1
+    mv s1, s5
+    j tokens_next_input
+tokens_skip_input_delim:
+    addi s1, s1, 1
+    j tokens_next_input
+tokens_done:
+    mv a1, s3
+    lw ra, 0(sp)
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp)
+    lw s4, 20(sp)
+    lw s5, 24(sp)
+    lw s6, 28(sp)
+    lw s7, 32(sp)
+    lw s8, 36(sp)
+    lw s9, 40(sp)
+    lw s10, 44(sp)
+    addi sp, sp, 48
+    ret
+
     # TODO
 
 # (in/out) a0: address of the output matrix to fill (int*)
@@ -397,6 +483,31 @@ tokens_to_indices:
 # (in)     a2: address of the input indices array (int*)
 # (in)     a3: number of tokens in the input (int)
 build_input_embeddings_matrix:
+ li t0, 0
+build_embeddings_row_loop:
+    beq t0, a3, build_embeddings_done
+    lw t1, 0(a2)
+    li t2, CONST_DIMENSION
+    mul t1, t1, t2
+    slli t1, t1, 2
+    add t1, a1, t1
+    li t2, 0
+build_embeddings_col_loop:
+    li t3, CONST_DIMENSION
+    beq t2, t3, build_embeddings_next_row
+    lw t4, 0(t1)
+    sw t4, 0(a0)
+    addi t1, t1, 4
+    addi a0, a0, 4
+    addi t2, t2, 1
+    j build_embeddings_col_loop
+build_embeddings_next_row:
+    addi a2, a2, 4
+    addi t0, t0, 1
+    j build_embeddings_row_loop
+build_embeddings_done:
+    ret
+
     # TODO
 
 # (in/out) a0: address of the output matrix to fill (int*)
@@ -406,6 +517,7 @@ build_input_embeddings_matrix:
 # (in)     a4: address of the second matrix (int*)
 # (in)     a5: #rows of the second matrix (int)
 # (in)     a6: #columns of the second matrix (int)
+
 matrix_multiply:
 li t0, 0                  # t0 = i = 0
 
