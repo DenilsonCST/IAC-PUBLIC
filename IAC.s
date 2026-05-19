@@ -195,12 +195,21 @@ main:
     ###########################################################################
     # Convert input tokens to indices
     ###########################################################################
-    # TODO
+    la a0, INPUT_INDICES_VECTOR
+    la a2, INPUT_BUFFER
+    la a3, VOCAB_BUFFER
+    jal ra, tokens_to_indices
+    la t0, INPUT_TOTAL_TOKENS
+    sw a1, 0(t0)
 
     ###########################################################################
     # Build input embeddings matrix
     ###########################################################################
-    # TODO
+    la a0, INPUT_EMBEDDINGS_MATRIX
+    la a1, VOCAB_EMBEDDINGS_MATRIX
+    la a2, INPUT_INDICES_VECTOR
+    lw a3, INPUT_TOTAL_TOKENS
+    jal ra, build_input_embeddings_matrix
 
     ###########################################################################
     # Build matrix Q
