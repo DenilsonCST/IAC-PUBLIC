@@ -234,7 +234,11 @@ main:
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
-    # TODO
+	#TODO
+
+	
+
+
 
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
@@ -349,11 +353,12 @@ new_line:
 
 end:
 	mv a1, t1
-	
+
 	lw ra, 0(sp)
 	addi sp, sp, 4
 
 	jr ra	
+
 
 
 
@@ -638,16 +643,88 @@ end_loop:
 # (in)  a2: #rows (int)
 # (in)  a3: #cols (int)
 # (in)  a4: target row
-
 select_vector_in_matrix:
     # TODO
+	bge a4, a2, exit_with_code  #if a4 > a2, exit
+	
+	li t0, 4
+	mul t0, a3, t0  #t0 = cols bytes number 
+	mul t0, a4, t0  #t0 = offset 
+
+	add a0, a1, t0  
+	
+	jr ra 
+
 
 # (out) a0: index of the predicted token in the vocabulary (int)
 # (in)  a0: address of target vector (int*)
 # (in)  a1: vocabulary embeddings address (int*)
 # (in)  a2: number of tokens in vocabulary (int)
 decide_next_token:
-    # TODO
+	mv t0, a0
+	mv t1, a1
+	mv t2, a2
+	addi sp, sp, -40
+	sw ra, 36(sp)
+	sw a0, 32(sp)
+	sw a1, 28(sp)
+	sw a2, 24(sp)
+	sw a3, 20(sp)
+	sw s2, 16(sp)
+	sw s3, 12(sp)
+	sw s4, 8(sp)
+	sw s5, 4(sp)
+	sw s6, 0(sp)
+
+	mv s6, t1
+	mv a2, s6 # a2 = address of second vector 
+	li a3, 4  # a3 = lenght of the vectors  
+	li s2, 0  # s2 = index 
+	li s3, 0  # s3 = max 
+	mv s4, t2 # s4 = number of tokens in vocabulary 
+do:
+	mv a1,t0  # a1 = address of first vector
+	jal ra, dot 
+	j save
+
+loop:
+	mv a2, s6
+	li a3, 4
+	mv a1,t0  # a1 = address of first vector
+	bge s2, s4, end # if index > #tokens , branch
+	jal ra, dot 
+	bgt a1, s3, save # if a1 > max, save
+	j next 
+
+save: 
+	mv s3, a1  # save the number as max 
+	mv s5, s2  # save the index
+	j next
+
+next:
+	addi s2, s2, 1
+	addi s6, s6, 16
+	mv a2, s6 
+	j loop
+
+end:
+	lw ra, 36(sp)
+	lw a0, 32(sp)
+	lw a1, 28(sp)
+	lw a2, 24(sp)
+	lw a3, 20(sp)
+	lw s2, 16(sp)
+	lw s3, 12(sp)
+	lw s4, 8(sp)
+	lw s6, 0(sp)
+	mv a0, s5   #save the index 
+
+	lw s5, 4(sp)
+	addi sp,sp, 40
+
+	jr ra
+
+
 
 #############################################################################################################
 # Dot product and argmax helper functions.
