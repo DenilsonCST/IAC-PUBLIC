@@ -96,6 +96,10 @@ main:
 	li a2, CONST_BUFFER_SIZE
 	jal ra, read_file
 
+
+    ###########################################################################
+    # Parse W_Q matrix from buffer
+    ###########################################################################
 	la a0, W_Q_MATRIX
 	la a1, MATRIX_BUFFER
 	jal ra, parse_matrix_buffer
@@ -108,11 +112,7 @@ main:
 	mv a1, t0
 	li a2, CONST_DIMENSION
 	jal ra, print_matrix
-
-    ###########################################################################
-    # Parse W_Q matrix from buffer
-    ###########################################################################
-    # TODO
+    
 
     ###########################################################################
     # Read W_K matrix
@@ -123,6 +123,11 @@ main:
 	li a2, CONST_BUFFER_SIZE
 	jal ra, read_file
 
+
+    ###########################################################################
+    # Parse W_K matrix from buffer
+    ###########################################################################
+    
 	la a0, W_K_MATRIX
 	la a1, MATRIX_BUFFER
 	jal ra, parse_matrix_buffer
@@ -135,11 +140,6 @@ main:
 	mv a1, t0
 	li a2, CONST_DIMENSION
 	jal ra, print_matrix
-
-    ###########################################################################
-    # Parse W_K matrix from buffer
-    ###########################################################################
-    # TODO
 
     ###########################################################################
     # Read W_V matrix
@@ -150,6 +150,10 @@ main:
 	li a2, CONST_BUFFER_SIZE
 	jal ra, read_file
 
+
+    ###########################################################################
+    # Parse W_V matrix from buffer
+    ###########################################################################
 	la a0, W_V_MATRIX
 	la a1, MATRIX_BUFFER
 	jal ra, parse_matrix_buffer
@@ -162,11 +166,6 @@ main:
 	mv a1, t0
 	li a2, CONST_DIMENSION
 	jal ra, print_matrix
-
-    ###########################################################################
-    # Parse W_V matrix from buffer
-    ###########################################################################
-    # TODO
 
     ###########################################################################
     # Read embeddings matrix
@@ -177,7 +176,10 @@ main:
 	li a2, CONST_BUFFER_SIZE
 	jal ra, read_file
 
-	la a0, EMBEDDINGS_FILENAME
+    ###########################################################################
+    # Parse vocabulary embeddings matrix from buffer
+    ###########################################################################
+    la a0, VOCAB_EMBEDDINGS_MATRIX
 	la a1, MATRIX_BUFFER
 	jal ra, parse_matrix_buffer
 
@@ -185,16 +187,10 @@ main:
 
 	mv t0, a1
 
-	la a0, EMBEDDINGS_FILENAME
+	la a0, VOCAB_EMBEDDINGS_MATRIX
 	mv a1, t0
 	li a2, CONST_DIMENSION
 	jal ra, print_matrix
-
-
-    ###########################################################################
-    # Parse vocabulary embeddings matrix from buffer
-    ###########################################################################
-    # TODO
 
     ###########################################################################
     # Convert input tokens to indices
