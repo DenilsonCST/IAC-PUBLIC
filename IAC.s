@@ -209,7 +209,7 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    
+    #TODO    
 
     ###########################################################################
     # Build matrix K
@@ -235,10 +235,6 @@ main:
     # Select chosen vector in V using the index from argmax
     ###########################################################################
 	#TODO
-
-	
-
-
 
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
@@ -292,6 +288,7 @@ read_file:
 # (in/out) a0: address of the matrix to fill (int*)
 # (out)    a1: number of rows in the matrix (int)
 # (in)     a1: address of the buffer containing the matrix data (char*)
+
 parse_matrix_buffer:
 	addi sp, sp, -4
 	sw ra, 0(sp)
@@ -358,8 +355,6 @@ end:
 	addi sp, sp, 4
 
 	jr ra	
-
-
 
 
 # Converts the input tokens into their corresponding indices in the vocabulary.
@@ -526,18 +521,18 @@ build_embeddings_done:
 matrix_multiply:
 li t0, 0                  # t0 = i = 0
 
-    loop_i:
-        bge t0, a2, end           # if i >= rows_A, the program ends 
+    mm_loop_i:
+        bge t0, a2, mm_end           # if i >= rows_A, the program ends 
         li t1, 0                  # t1 = j = 0
 
-        loop_j:
-            bge t1, a6, next_i        # Se j >= cols_B, avança para o próximo i
+        mm_loop_j:
+            bge t1, a6, mm_next_i        # Se j >= cols_B, avança para o próximo i
             li t2, 0                  # t2 = sum = 0
             li t3, 0                  # t3 = k = 0
 
-            loop_k:
+            mm_loop_k:
                 
-                bge t3, a3, store_result  
+                bge t3, a3, mm_store_result  
 
                 mul t4, t0, a3            
                 add t4, t4, t3            
@@ -555,9 +550,9 @@ li t0, 0                  # t0 = i = 0
                 add t2, t2, t6            # sum (t2) += t6
 
                 addi t3, t3, 1            # k++
-            j loop_k                  
+            j mm_loop_k                  
 
-    store_result:
+    mm_store_result:
         mul t4, t0, a6            # t4 = i * cols_B
         add t4, t4, t1            
         slli t4, t4, 2            
@@ -565,13 +560,13 @@ li t0, 0                  # t0 = i = 0
         sw t2, 0(t4)              
 
         addi t1, t1, 1            # j++ 
-        j loop_j                  # loop_j with next col
+        j mm_loop_j                  # loop_j with next col
 
-    next_i:
+    mm_next_i:
         addi t0, t0, 1            # i++
-        j loop_i                  
+        j mm_loop_i                  
 
-    end:
+    mm_end:
         ret                       # Retorna da função
 
 
@@ -603,8 +598,8 @@ compute_scores:
     slli t0, t0, 2            # t0 = t0 * 4 (bytes conversor)
     add s1, a1, t0            # s1 = Q_target 
 
-loop_j:
-    bge s5, s3, end_loop      
+cs_loop_j:
+    bge s5, s3, cs_end_loop      
 
     mul t0, s5, s4            # t0 = j * cols
     slli t0, t0, 2            # t0 = t0 * 4 (bytres conversor)
@@ -624,9 +619,9 @@ loop_j:
 
   
     addi s5, s5, 1            # j++
-    j loop_j                  
+    j cs_loop_j                  
 
-end_loop:
+cs_end_loop:
 
     lw ra, 28(sp)             
     lw s0, 24(sp)             
