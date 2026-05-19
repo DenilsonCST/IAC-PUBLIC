@@ -407,7 +407,56 @@ build_input_embeddings_matrix:
 # (in)     a5: #rows of the second matrix (int)
 # (in)     a6: #columns of the second matrix (int)
 matrix_multiply:
-    # TODO
+li t0, 0                  # t0 = i = 0
+
+    loop_i:
+        bge t0, a2, end           # if i >= rows_A, the program ends 
+        li t1, 0                  # t1 = j = 0
+
+        loop_j:
+            bge t1, a6, next_i        # Se j >= cols_B, avança para o próximo i
+            li t2, 0                  # t2 = sum = 0
+            li t3, 0                  # t3 = k = 0
+
+            loop_k:
+                
+                bge t3, a3, store_result  
+
+                mul t4, t0, a3            
+                add t4, t4, t3            
+                slli t4, t4, 2            
+                add t4, a1, t4            
+                lw t5, 0(t4)              # t5 = A[i][k]
+
+                mul t6, t3, a6            
+                add t6, t6, t1            
+                slli t6, t6, 2            
+                add t6, a4, t6            
+                lw t4, 0(t6)              # t4 = B[k][j]
+
+                mul t6, t5, t4            # t6 = A[i][k] * B[k][j]
+                add t2, t2, t6            # sum (t2) += t6
+
+                addi t3, t3, 1            # k++
+            j loop_k                  
+
+    store_result:
+        mul t4, t0, a6            # t4 = i * cols_B
+        add t4, t4, t1            
+        slli t4, t4, 2            
+        add t4, a0, t4            
+        sw t2, 0(t4)              
+
+        addi t1, t1, 1            # j++ 
+        j loop_j                  # loop_j with next col
+
+    next_i:
+        addi t0, t0, 1            # i++
+        j loop_i                  
+
+    end:
+        ret                       # Retorna da função
+
 
 # (in/out) a0: address of the output scores vector to fill (int*)
 # (in)     a1: address of Q matrix (int*)
@@ -415,14 +464,69 @@ matrix_multiply:
 # (in)     a3: #rows of Q and K (int)
 # (in)     a4: #columns of Q and K (int)
 # (in)     a5: target token index for which we want to compute the score (int)
+
+
 compute_scores:
-    # TODO
+    addi sp, sp, -32          # 32 bytes on stack
+    sw ra, 28(sp)             # return address 
+    sw s0, 24(sp)              
+    sw s1, 20(sp)              
+    sw s2, 16(sp)             
+    sw s3, 12(sp)             # s3 keeps the numbver of lines (a3)
+    sw s4, 8(sp)              # s4 keeps the numeber of cols (a4)
+    sw s5, 4(sp)              # (j = 0)
+
+    mv s0, a0                 
+    mv s2, a2                 
+    mv s3, a3                 # s3 = n
+    mv s4, a4                 # s4 = d_k
+    li s5, 0                  # s5 = j = 0 
+
+    mul t0, a5, a4            # t0 = target_index * cols
+    slli t0, t0, 2            # t0 = t0 * 4 (bytes conversor)
+    add s1, a1, t0            # s1 = Q_target 
+
+loop_j:
+    bge s5, s3, end_loop      
+
+    mul t0, s5, s4            # t0 = j * cols
+    slli t0, t0, 2            # t0 = t0 * 4 (bytres conversor)
+    add a1, s2, t0            
+
+  
+    mv a0, s1                
+    mv a2, s4                 
+
+    jal dot                   # dot(Q_target, K[j], cols). Returns a0
+
+   
+  
+    slli t0, s5, 2            # t0 = j * 4
+    add t0, s0, t0            # t0 = scores[j] address
+    sw a0, 0(t0)              
+
+  
+    addi s5, s5, 1            # j++
+    j loop_j                  
+
+end_loop:
+
+    lw ra, 28(sp)             
+    lw s0, 24(sp)             
+    lw s1, 20(sp)             
+    lw s2, 16(sp)             
+    lw s3, 12(sp)            
+    lw s4, 8(sp)             
+    lw s5, 4(sp)              
+    addi sp, sp, 32          
+    ret                       # Returns to compute_scores first call
 
 # (out) a0: address of the selected vector (int*)
 # (in)  a1: address of matrix (int*)
 # (in)  a2: #rows (int)
 # (in)  a3: #cols (int)
 # (in)  a4: target row
+
 select_vector_in_matrix:
     # TODO
 
