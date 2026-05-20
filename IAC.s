@@ -205,37 +205,103 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    #TODO    
+    la a0, Q_MATRIX                   # return matrix 
+    la a1, INPUT_EMBEDDINGS_MATRIX   # Matriz E
+
+    la t0, INPUT_TOTAL_TOKENS
+    lw a2, 0(t0)                    # a2 = n (E lines)
+
+    li a3, CONST_DIMENSION          # a3 = 4 
+    la a4, W_Q_MATRIX               # Matriz B
+    li a5, CONST_DIMENSION          # a5 = 4 (W_Q lines)
+    li a6, CONST_DIMENSION          # a6 = 4 (W_Q cols)
+
+    jal ra, matrix_multiply         # multiply
 
     ###########################################################################
     # Build matrix K
     ###########################################################################
-    # TODO
+    la a0, K_MATRIX
+    la a1, INPUT_EMBEDDINGS_MATRIX
+
+
+    la t0 , INPUT_TOTAL_TOKENS
+    lw a2, 0(t0)
+
+    li a3, CONST_DIMENSION
+    la a4, W_K_MATRIX
+    li a5, CONST_DIMENSION 
+    li a6, CONST_DIMENSION
+
+    jal ra, matrix_multiply
 
     ###########################################################################
     # Build matrix V
     ###########################################################################
-    # TODO
+    la a0, V_MATRIX
+    la a1, INPUT_EMBEDDINGS_MATRIX
+
+
+    la t0 , INPUT_TOTAL_TOKENS
+    lw a2, 0(t0)
+
+    li a3, CONST_DIMENSION
+    la a4, W_V_MATRIX
+    li a5, CONST_DIMENSION 
+    li a6, CONST_DIMENSION
+
+    jal ra, matrix_multiply
 
     ###########################################################################
     # Compute scores for the last input token
     ###########################################################################
-    # TODO
+    la a0, SCORES_VECTOR
+    la a1, Q_MATRIX
+    la a2, K_MATRIX
+    
+    la t0, INPUT_TOTAL_TOKENS
+    lw a3, 0(t0)    # a3 = n (number of tokens)
+
+    li a4, CONST_DIMENSION # a4 = 4 
+
+    addi a5, a3, -1        # a5 = n - 1 
+
+    jal ra, compute_scores
 
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
-    # TODO
+    la a1, SCORES_VECTOR
+
+    la t0, INPUT_TOTAL_TOKENS
+    lw a2, 0(t0)
+
+    jal ra, argmax
 
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
-	#TODO
+    mv a4, a1               # Move a1 to a4 because a4 is the expected arg of s_v_in_m 
+
+    la a1, V_MATRIX
+    
+    la t0, INPUT_TOTAL_TOKENS
+    lw a2, 0(t0)
+
+    li a3, CONST_DIMENSION
+
+    jal ra, select_vector_in_matrix
 
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
     ###########################################################################
-    # TODO
+    
+    la a1, VOCAB_EMBEDDINGS_MATRIX
+
+    la t0, VOCAB_TOTAL_TOKENS
+    lw a2, 0(t0)
+
+    jal ra, decide_next_token
 
     ###########################################################################
     # Terminate program successfully
