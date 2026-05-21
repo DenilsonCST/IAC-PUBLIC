@@ -179,18 +179,16 @@ main:
     ###########################################################################
     # Parse vocabulary embeddings matrix from buffer
     ###########################################################################
+   
     la a0, VOCAB_EMBEDDINGS_MATRIX
-	la a1, MATRIX_BUFFER
-	jal ra, parse_matrix_buffer
+    la a1, MATRIX_BUFFER
+    jal ra, parse_matrix_buffer
 
-	#A parte de baixo é só para verificação
+    la t1, VOCAB_TOTAL_TOKENS
+    sw a1, 0(t1)                   
+    # ==================================================================
 
-	mv t0, a1
-
-	la a0, VOCAB_EMBEDDINGS_MATRIX
-	mv a1, t0
-	li a2, CONST_DIMENSION
-	jal ra, print_matrix
+    mv t0, a1 
 
     ###########################################################################
     # Convert input tokens to indices
