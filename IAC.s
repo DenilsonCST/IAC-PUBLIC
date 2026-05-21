@@ -202,6 +202,10 @@ main:
     la t0, INPUT_TOTAL_TOKENS
     sw a1, 0(t0)
 
+	#a parte de teste
+	jal ra, print_indices 
+	
+
     ###########################################################################
     # Build input embeddings matrix
     ###########################################################################
@@ -210,6 +214,12 @@ main:
     la a2, INPUT_INDICES_VECTOR
     lw a3, INPUT_TOTAL_TOKENS
     jal ra, build_input_embeddings_matrix
+
+	#Parte de teste
+	la a0, INPUT_EMBEDDINGS_MATRIX
+	lw a1, INPUT_TOTAL_TOKENS
+	li a2, CONST_DIMENSION
+	jal ra, print_matrix
 
     ###########################################################################
     # Build matrix Q
@@ -277,6 +287,13 @@ main:
 
     jal ra, compute_scores
 
+	#parte de teste 
+	la a0, SCORES_VECTOR
+	lw a1, INPUT_TOTAL_TOKENS
+	jal ra, print_vector
+
+
+
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
@@ -286,6 +303,11 @@ main:
     lw a2, 0(t0)
 
     jal ra, argmax
+
+	#Parte de teste
+	mv a0, a1			# a1 contém o índice
+	jal ra, print_int
+
 
     ###########################################################################
     # Select chosen vector in V using the index from argmax
@@ -301,6 +323,13 @@ main:
 
     jal ra, select_vector_in_matrix
 
+	#teste
+	# a0 contém o endereço do vetor selecionado
+	mv a1, a0
+	li a2, CONST_DIMENSION
+	jal ra, print_vector
+
+
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
     ###########################################################################
@@ -311,6 +340,12 @@ main:
     lw a2, 0(t0)
 
     jal ra, decide_next_token
+
+	#teste
+	# a0 contém o índice do token previsto
+	mv a1, a0
+	jal ra, print_predicted_token
+
 
     ###########################################################################
     # Terminate program successfully
@@ -792,7 +827,6 @@ next:
 
 end_decide:
 	lw ra, 36(sp)
-	lw a0, 32(sp)
 	lw a1, 28(sp)
 	lw a2, 24(sp)
 	lw a3, 20(sp)
@@ -806,6 +840,8 @@ end_decide:
 	addi sp,sp, 40
 
 	jr ra
+
+
 
 
 
