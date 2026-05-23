@@ -201,7 +201,9 @@ main:
     sw a1, 0(t0)
 
 	#a parte de teste
-	jal ra, print_indices 
+	la a0, INPUT_INDICES_VECTOR
+	lw a1, INPUT_TOTAL_TOKENS
+	jal ra, print_indices
 	
 
     ###########################################################################
@@ -340,9 +342,32 @@ main:
     jal ra, decide_next_token
 
 	#teste
-	# a0 contém o índice do token previsto
-	mv a1, a0
-	jal ra, print_predicted_token
+	# a0 = índice do token previsto 
+
+    # Converter índice -> endereço no VOCAB_BUFFER
+ 	addi sp, sp, -8
+    sw ra, 0(sp)                    # guardar endereço de retorno
+    sw s0, 4(sp)                    # guardar s0
+
+    mv s0, a0                       # s0 = índice do token previsto
+    la a0, VOCAB_BUFFER             # a0 = início do VOCAB_BUFFER
+
+find_vocab_addr:
+    beq s0, zero, found_vocab_addr  # se índice = 0, já estamos na palavra certa
+    lb t0, 0(a0)                    # lê caractere atual do buffer
+    addi a0, a0, 1                  # avança ponteiro
+    li t1, CONST_CHAR_NEWLINE
+    bne t0, t1, find_vocab_addr     # se não é '\n', continua a avançar
+    addi s0, s0, -1                 # encontrou '\n': decrementa contador de palavras restantes
+    j find_vocab_addr
+
+found_vocab_addr:
+    # a0 aponta agora para o início da palavra correta no VOCAB_BUFFER
+    jal ra, print_predicted_token   # imprime o token previsto
+
+    lw ra, 0(sp)                    # restaurar endereço de retorno
+    lw s0, 4(sp)                    # restaurar s0
+    addi sp, sp, 8
 
 
     ###########################################################################
@@ -736,7 +761,7 @@ cs_loop_j:
   
     slli t0, s5, 2            # t0 = j * 4
     add t0, s0, t0            # t0 = scores[j] address
-    sw a0, 0(t0)              
+    sw a1, 0(t0)              
 
   
     addi s5, s5, 1            # j++
@@ -796,7 +821,7 @@ decide_next_token:
 	mv a2, s6 # a2 = address of second vector 
 	li a3, 4  # a3 = lenght of the vectors  
 	li s2, 0  # s2 = index 
-	li s3, 0  # s3 = max 
+	li s3, 0x80000000 # s3 = max 
 	mv s4, t2 # s4 = number of tokens in vocabulary 
 do:
 	mv a1,t0  # a1 = address of first vector
