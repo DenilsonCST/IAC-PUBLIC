@@ -66,10 +66,10 @@ main:
     ###########################################################################
     # Read vocabulary
     ###########################################################################
-    la a0, VOCABULARY_FILENAME  # Ponteiro para o nome do ficheiro
-    la a1, VOCAB_BUFFER        # Ponteiro para o enderço do buffer
-    li a2, CONST_BUFFER_SIZE   # numero maximo de bytes a ler
-    jal ra, read_file        #chama o read file
+    la a0, VOCABULARY_FILENAME  # Pointer to filename
+    la a1, VOCAB_BUFFER        # Pointer to buffer address
+    li a2, CONST_BUFFER_SIZE   # Maximum number of bytes to read
+    jal ra, read_file        # Calls read_file
     
     la a0, VOCAB_BUFFER
     jal ra, print_vocabulary
@@ -78,10 +78,10 @@ main:
     # Read input
     ###########################################################################
     # TODO
-    la a0, INPUT_FILENAME  # Ponteiro para o nome do ficheiro
-    la a1, INPUT_BUFFER        # Ponteiro para o enderço do buffer
-    li a2, CONST_BUFFER_SIZE               # numero maximo de bytes a ler
-    jal ra, read_file        #chama o read file
+    la a0, INPUT_FILENAME  # Pointer to filename
+    la a1, INPUT_BUFFER        # Pointer to buffer address
+    li a2, CONST_BUFFER_SIZE               # Maximum number of bytes to read
+    jal ra, read_file        # Calls read_file
     
     la a0, INPUT_BUFFER
     jal ra, print_input
@@ -104,7 +104,7 @@ main:
 	la a1, MATRIX_BUFFER
 	jal ra, parse_matrix_buffer
 
-	#A parte de baixo é só para verificação
+	# The section below is only for verification
 
 	mv t0, a1
 
@@ -132,7 +132,7 @@ main:
 	la a1, MATRIX_BUFFER
 	jal ra, parse_matrix_buffer
 
-	#A parte de baixo é só para verificação
+	# The section below is only for verification
 
 	mv t0, a1
 
@@ -158,7 +158,7 @@ main:
 	la a1, MATRIX_BUFFER
 	jal ra, parse_matrix_buffer
 
-	#A parte de baixo é só para verificação
+	# The section below is only for verification
 
 	mv t0, a1
 
@@ -200,7 +200,7 @@ main:
     la t0, INPUT_TOTAL_TOKENS
     sw a1, 0(t0)
 
-	#a parte de teste
+	# Testing section
 	la a0, INPUT_INDICES_VECTOR
 	lw a1, INPUT_TOTAL_TOKENS
 	jal ra, print_indices
@@ -215,7 +215,7 @@ main:
     lw a3, INPUT_TOTAL_TOKENS
     jal ra, build_input_embeddings_matrix
 
-	#Parte de teste
+	# Testing section
 	la a0, INPUT_EMBEDDINGS_MATRIX
 	lw a1, INPUT_TOTAL_TOKENS
 	li a2, CONST_DIMENSION
@@ -224,18 +224,18 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    la a0, Q_MATRIX                   # return matrix 
-    la a1, INPUT_EMBEDDINGS_MATRIX   # Matriz E
+    la a0, Q_MATRIX                   # Return matrix 
+    la a1, INPUT_EMBEDDINGS_MATRIX   # Matrix E
 
     la t0, INPUT_TOTAL_TOKENS
-    lw a2, 0(t0)                    # a2 = n (E lines)
+    lw a2, 0(t0)                    # a2 = n (E rows)
 
     li a3, CONST_DIMENSION          # a3 = 4 
-    la a4, W_Q_MATRIX               # Matriz B
-    li a5, CONST_DIMENSION          # a5 = 4 (W_Q lines)
+    la a4, W_Q_MATRIX               # Matrix B
+    li a5, CONST_DIMENSION          # a5 = 4 (W_Q rows)
     li a6, CONST_DIMENSION          # a6 = 4 (W_Q cols)
 
-    jal ra, matrix_multiply         # multiply
+    jal ra, matrix_multiply         # Multiply
 
     ###########################################################################
     # Build matrix K
@@ -287,7 +287,7 @@ main:
 
     jal ra, compute_scores
 
-	#parte de teste 
+	# Testing section 
 	la a0, SCORES_VECTOR
 	lw a1, INPUT_TOTAL_TOKENS
 	jal ra, print_vector
@@ -308,7 +308,7 @@ main:
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
-    mv a4, a1               # Move a1 to a4 because a4 is the expected arg of s_v_in_m 
+    mv a4, a1               # Move a1 to a4 because a4 is the expected argument of s_v_in_m 
 
     la a1, V_MATRIX
     
@@ -319,8 +319,8 @@ main:
 
     jal ra, select_vector_in_matrix
 
-	#teste
-	# a0 contém o endereço do vetor selecionado
+	# Testing
+	# a0 contains the address of the selected vector
 	mv a1, a0
 	li a2, CONST_DIMENSION
 	jal ra, print_vector
@@ -337,32 +337,33 @@ main:
 
     jal ra, decide_next_token
 
-	#teste
-	# a0 = índice do token previsto 
+	# Testing
+	# a0 = predicted token index 
 
-    # Converter índice -> endereço no VOCAB_BUFFER
+    # Convert index -> address in VOCAB_BUFFER
  	addi sp, sp, -8
-    sw ra, 0(sp)                    # guardar endereço de retorno
-    sw s0, 4(sp)                    # guardar s0
+    sw ra, 0(sp)                    # Save return address
+    sw s0, 4(sp)                    # Save s0
 
-    mv s0, a0                       # s0 = índice do token previsto
-    la a0, VOCAB_BUFFER             # a0 = início do VOCAB_BUFFER
+    mv s0, a0                      # s0 = predicted token index
+    la a0, VOCAB_BUFFER             # a0 = beginning of VOCAB_BUFFER
+	
 
 find_vocab_addr:
-    beq s0, zero, found_vocab_addr  # se índice = 0, já estamos na palavra certa
-    lb t0, 0(a0)                    # lê caractere atual do buffer
-    addi a0, a0, 1                  # avança ponteiro
+    beq s0, zero, found_vocab_addr  # If index = 0, already at the correct word
+    lb t0, 0(a0)                    # Reads current buffer character
+    addi a0, a0, 1                  # Advances pointer
     li t1, CONST_CHAR_NEWLINE
-    bne t0, t1, find_vocab_addr     # se não é '\n', continua a avançar
-    addi s0, s0, -1                 # encontrou '\n': decrementa contador de palavras restantes
+    bne t0, t1, find_vocab_addr     # If not '\n', continue advancing
+    addi s0, s0, -1                 # Found '\n': decrement remaining word counter
     j find_vocab_addr
 
 found_vocab_addr:
-    # a0 aponta agora para o início da palavra correta no VOCAB_BUFFER
-    jal ra, print_predicted_token   # imprime o token previsto
+    # a0 now points to the beginning of the correct word in VOCAB_BUFFER
+    jal ra, print_predicted_token   # Prints the predicted token
 
-    lw ra, 0(sp)                    # restaurar endereço de retorno
-    lw s0, 4(sp)                    # restaurar s0
+    lw ra, 0(sp)                    # Restore return address
+    lw s0, 4(sp)                    # Restore s0
     addi sp, sp, 8
 
 
@@ -378,7 +379,7 @@ found_vocab_addr:
 # (in)     a2: maximum number of bytes to read
 read_file:
     addi sp, sp, -20
-    sw ra, 16(sp)    #guardo na stack o endereço de retorno
+    sw ra, 16(sp)    #save the return address
     sw a0, 12(sp)    
     sw a1, 8(sp) 
     sw a2, 4(sp)  
@@ -388,11 +389,11 @@ read_file:
     li a1, 0
     li a7, CONST_SYSCALL_OPEN
     ecall
-    sw a0, 0(sp)  #salvo o file descriptor na stack
+    sw a0, 0(sp)  #save file descriptor in stack
     
     #Leitura do ficheiro(read)
-    lw a0, 0(sp)  # restauro o fd
-    lw a1, 8(sp)   #tiro o endereço do buffer
+    lw a0, 0(sp)  # restore fd
+    lw a1, 8(sp)   # take out the buffer address
     lw a2, 4(sp)
     li a7, CONST_SYSCALL_READ
     ecall
@@ -405,7 +406,7 @@ read_file:
     lw ra, 16(sp)
     addi sp, sp, 20
     
-    jr ra #retorna para o chamador 
+    jr ra # return to caller
     
 # Assumes the matrix is stored in the buffer as space-separated integers.
 # Assumes columns are separated by 1 space (' '), and rows by 1 newline ('\n').
@@ -415,71 +416,113 @@ read_file:
 # (in)     a1: address of the buffer containing the matrix data (char*)
 
 parse_matrix_buffer:
-	addi sp, sp, -4
-	sw ra, 0(sp)
+    addi sp, sp, -4
+    sw ra, 0(sp)
 
-	li t0, 0 #  numero
-	li t1, 0 # numero de linhas
-	li t2, 1 # flag
+    li t0, 0          # Current number being built
+    li t1, 0          # Number of matrix rows 
+    li t2, 1          # Sign flag (+1 or -1)
+    li t5, 0          # Flag: number currently being parsed
 
 parse_matrix_buffer_loop:
-	lb t3, 0(a1) # carater atual
+    lb t3, 0(a1)      # Read from text buffer 
 
-	li t4, CONST_CHAR_EOF
-	beq t3, t4, end_parse  #se carater = EOF, branch to end
+    li t4, CONST_CHAR_EOF
+    beq t3, t4, eof_save
 
-	li t4, CONST_CHAR_HYPHEN  # t4 = -
-	beq t3, t4, change_flag # se carater = -, branch to change flag
+    li t4, CONST_CHAR_HYPHEN
+    beq t3, t4, change_sign
 
-	li t4, CONST_CHAR_SPACE
-	beq t3, t4, save_number  #se carater = espaço, branch to save_number
+    li t4, CONST_CHAR_SPACE
+    beq t3, t4, save_number_space
 
-	li t4, CONST_CHAR_NEWLINE
-	beq t3, t4, new_line
+    li t4, CONST_CHAR_NEWLINE
+    beq t3, t4, save_number_newline
 
-	li t4, CONST_CHAR_ZERO
-	blt t3, t4, next_caracter
+    li t4, CONST_CHAR_ZERO
+    blt t3, t4, next_character
 
-	li t4, CONST_CHAR_NINE
-	bgt t3, t4, next_caracter
+    li t4, CONST_CHAR_NINE
+    bgt t3, t4, next_character
 
-	li t4, 10  
-	mul t0, t0, t4 # numero * 10
-	li t4, CONST_CHAR_ZERO
-	sub t3,t3, t4  #change ASCII to digit number
-	add t0, t0, t3 # numero = numero * 10 + digito
+    # number = number * 10 + digit
+    li t4, 10
+    mul t0, t0, t4
 
-	j next_caracter
+    li t4, CONST_CHAR_ZERO
+    sub t3, t3, t4
 
-next_caracter:
-	addi a1, a1, 1  #buffer++
-	j parse_matrix_buffer_loop
+    add t0, t0, t3
 
-change_flag:
-	li t4, -1
-	mul t2, t2, t4 #flag = -1
-	j next_caracter
+    li t5, 1          # A valid digit was parsed
 
-save_number:
-	mul t0, t0, t2 # coloca o numero a positivo/negativo
-	sw t0, 0(a0)  # save the number 
-	addi a0, a0, 4
-	addi a1, a1, 1  #buffer++
-	mv t0, x0 # reinicializa o numero
-	li t2, 1  # Flag = 1
-	j parse_matrix_buffer_loop
+    j next_character
 
-new_line:
-	addi t1, t1, 1
-	j save_number
+next_character:
+    addi a1, a1, 1    # Advance text pointer 
+    j parse_matrix_buffer_loop
+
+change_sign:
+    li t2, -1
+    addi a1, a1, 1    # Advance text pointer 
+    j parse_matrix_buffer_loop
+
+save_number_space:
+    beq t5, zero, skip_space
+
+    # Apply sign and store number
+    mul t0, t0, t2
+    sw t0, 0(a0)      # Store into matrix destination 
+
+    addi a0, a0, 4    # Advance matrix destination pointer
+    addi t1, t1, 1    # Increment parsed elements counter
+
+    # Reset parser state
+    li t0, 0
+    li t2, 1
+    li t5, 0
+
+skip_space:
+    addi a1, a1, 1    # Advance text pointer 
+    j parse_matrix_buffer_loop
+
+save_number_newline:
+    beq t5, zero, skip_newline
+
+    # Apply sign and store number
+    mul t0, t0, t2
+    sw t0, 0(a0)      # Store into matrix destination 
+
+    addi a0, a0, 4    # Advance matrix destination pointer 
+    addi t1, t1, 1    # Increment parsed elements counter
+
+    # Reset parser state
+    li t0, 0
+    li t2, 1
+    li t5, 0
+
+skip_newline:
+    addi a1, a1, 1    # Advance text pointer 
+    j parse_matrix_buffer_loop
+
+eof_save:
+    # Save last pending number if it exists
+    beq t5, zero, end_parse
+
+    mul t0, t0, t2
+    sw t0, 0(a0)      # Store into matrix destination
+    addi t1, t1, 1    # Increment parsed elements counter
 
 end_parse:
-	mv a1, t1
+    srli t1, t1, 2    # Convert total parsed elements into matrix rows (elements / 4 columns)
 
-	lw ra, 0(sp)
-	addi sp, sp, 4
+    
+    mv a1, t1       # Return number of rows in a0  
 
-	jr ra	
+    lw ra, 0(sp)
+    addi sp, sp, 4
+
+    jr ra
 
 
 # Converts the input tokens into their corresponding indices in the vocabulary.
@@ -797,10 +840,12 @@ select_vector_in_matrix:
 # (in)  a0: address of target vector (int*)
 # (in)  a1: vocabulary embeddings address (int*)
 # (in)  a2: number of tokens in vocabulary (int)
+
 decide_next_token:
 	mv t0, a0
 	mv t1, a1
 	mv t2, a2
+
 	addi sp, sp, -40
 	sw ra, 36(sp)
 	sw a0, 32(sp)
@@ -814,52 +859,51 @@ decide_next_token:
 	sw s6, 0(sp)
 
 	mv s6, t1
-	mv a2, s6 # a2 = address of second vector 
-	li a3, 4  # a3 = lenght of the vectors  
-	li s2, 0  # s2 = index 
-	li s3, 0x80000000 # s3 = max 
-	mv s4, t2 # s4 = number of tokens in vocabulary 
-do:
-	mv a1,t0  # a1 = address of first vector
-	jal ra, dot 
-	j save
+	li s2, 0  # s2 = index
+	li s3, 0x80000000 # s3 = max
+	mv s4, t2 # s4 = number of tokens in vocabulary
 
 loop:
-	mv a2, s6
-	li a3, 4
-	mv a1,t0  # a1 = address of first vector
 	bge s2, s4, end_decide # if index > #tokens , branch
-	jal ra, dot 
-	bgt a1, s3, save # if a1 > max, save
-	j next 
+
+	mv a1, t0  # a1 = address of first vector
+	mv a2, s6 # a2 = address of second vector
+	li a3, 4  # a3 = lenght of the vectors
+
+	jal ra, dot
+
+	bne a0, zero, next # if dot returned error, skip
+
+	bgt a1, s3, save # if result > max, save
+
+	j next
 
 save: 
 	mv s3, a1  # save the number as max 
 	mv s5, s2  # save the index
-	j next
 
 next:
 	addi s2, s2, 1
 	addi s6, s6, 16
-	mv a2, s6 
 	j loop
 
 end_decide:
 	lw ra, 36(sp)
+	lw a0, 32(sp)
 	lw a1, 28(sp)
 	lw a2, 24(sp)
 	lw a3, 20(sp)
 	lw s2, 16(sp)
 	lw s3, 12(sp)
 	lw s4, 8(sp)
-	lw s6, 0(sp)
+
 	mv a0, s5   #save the index 
 
 	lw s5, 4(sp)
+	lw s6, 0(sp)
 	addi sp,sp, 40
 
 	jr ra
-
 
 
 
