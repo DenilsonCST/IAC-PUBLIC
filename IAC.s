@@ -214,7 +214,7 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    la a0, Q_MATRIX                   # return matrix 
+    la a0, Q_MATRIX                  # return matrix 
     la a1, INPUT_EMBEDDINGS_MATRIX   # Matriz E
 
     la t0, INPUT_TOTAL_TOKENS
@@ -337,7 +337,7 @@ read_file:
     sw a0, 0(sp)  #salvo o file descriptor na stack
     
     #Leitura do ficheiro(read)
-    lw a0, 0(sp)  # restauro o fd
+    lw a0, 0(sp)   # restauro o fd
     lw a1, 8(sp)   #tiro o endereço do buffer
     lw a2, 4(sp)
     li a7, CONST_SYSCALL_READ
@@ -672,8 +672,8 @@ compute_scores:
     sw s0, 24(sp)              
     sw s1, 20(sp)              
     sw s2, 16(sp)             
-    sw s3, 12(sp)             # s3 keeps the numbver of lines (a3)
-    sw s4, 8(sp)              # s4 keeps the numeber of cols (a4)
+    sw s3, 12(sp)             # s3 keeps the number of lines (a3)
+    sw s4, 8(sp)              # s4 keeps the number of cols (a4)
     sw s5, 4(sp)              # (j = 0)
 
     mv s0, a0                 
@@ -699,8 +699,6 @@ cs_loop_j:
 
     jal dot                   # dot(Q_target, K[j], cols). Returns a0
 
-   
-  
     slli t0, s5, 2            # t0 = j * 4
     add t0, s0, t0            # t0 = scores[j] address
     sw a0, 0(t0)              
