@@ -304,10 +304,6 @@ main:
 
     jal ra, argmax
 
-	#Parte de teste
-	mv a0, a1			# a1 contém o índice
-	jal ra, print_int
-
 
     ###########################################################################
     # Select chosen vector in V using the index from argmax
@@ -761,7 +757,7 @@ cs_loop_j:
   
     slli t0, s5, 2            # t0 = j * 4
     add t0, s0, t0            # t0 = scores[j] address
-    sw a1, 0(t0)              
+    sw a0, 0(t0)              
 
   
     addi s5, s5, 1            # j++
