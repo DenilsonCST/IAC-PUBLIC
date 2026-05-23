@@ -64,7 +64,7 @@ V_MATRIX:                .zero (CONST_MAX_INPUT_TOKENS * CONST_DIMENSION * 4) # 
 .text
 main:
     ###########################################################################
-    # Read vocabulary
+    # Read vocabularyy
     ###########################################################################
     # TODO
 	la a0, VOCABULARY_FILENAME  # Pointer to filename
