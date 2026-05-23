@@ -229,11 +229,11 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    la a0, Q_MATRIX                  # return matrix 
-    la a1, INPUT_EMBEDDINGS_MATRIX   # Matriz E
     # TODO
 	la a0, Q_MATRIX                # a0 = output matrix Q
     la a1, INPUT_EMBEDDINGS_MATRIX # a1 = input embeddings matrix E
+    la a0, Q_MATRIX                  # return matrix 
+    la a1, INPUT_EMBEDDINGS_MATRIX   # Matriz E
 
     la t0, INPUT_TOTAL_TOKENS      # load address of input token count
     lw a2, 0(t0)                   # a2 = number of rows of E
@@ -401,7 +401,9 @@ read_file:
     sw a0, 0(sp)  #save file descriptor in stack
     
     #Leitura do ficheiro(read)
-    lw a0, 0(sp)  # restauro o fd
+    lw a0, 0(sp)  # restore fd
+    lw a1, 8(sp)   # take out the buffer address
+    lw a0, 0(sp)   # restauro o fd
     lw a1, 8(sp)   #tiro o endereço do buffer
     lw a2, 4(sp)
     li a7, CONST_SYSCALL_READ
