@@ -233,6 +233,13 @@ main:
 
     jal ra, compute_scores
 
+	#parte de teste 
+	la a0, SCORES_VECTOR
+	lw a1, INPUT_TOTAL_TOKENS
+	jal ra, print_vector
+
+
+
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
@@ -242,6 +249,7 @@ main:
     lw a2, 0(t0)
 
     jal ra, argmax
+
 
     ###########################################################################
     # Select chosen vector in V using the index from argmax
@@ -257,6 +265,13 @@ main:
 
     jal ra, select_vector_in_matrix
 
+	#teste
+	# a0 contém o endereço do vetor selecionado
+	mv a1, a0
+	li a2, CONST_DIMENSION
+	jal ra, print_vector
+
+
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
     ###########################################################################
@@ -267,6 +282,35 @@ main:
     lw a2, 0(t0)
 
     jal ra, decide_next_token
+
+	#teste
+	# a0 = índice do token previsto 
+
+    # Converter índice -> endereço no VOCAB_BUFFER
+ 	addi sp, sp, -8
+    sw ra, 0(sp)                    # guardar endereço de retorno
+    sw s0, 4(sp)                    # guardar s0
+
+    mv s0, a0                       # s0 = índice do token previsto
+    la a0, VOCAB_BUFFER             # a0 = início do VOCAB_BUFFER
+
+find_vocab_addr:
+    beq s0, zero, found_vocab_addr  # se índice = 0, já estamos na palavra certa
+    lb t0, 0(a0)                    # lê caractere atual do buffer
+    addi a0, a0, 1                  # avança ponteiro
+    li t1, CONST_CHAR_NEWLINE
+    bne t0, t1, find_vocab_addr     # se não é '\n', continua a avançar
+    addi s0, s0, -1                 # encontrou '\n': decrementa contador de palavras restantes
+    j find_vocab_addr
+
+found_vocab_addr:
+    # a0 aponta agora para o início da palavra correta no VOCAB_BUFFER
+    jal ra, print_predicted_token   # imprime o token previsto
+
+    lw ra, 0(sp)                    # restaurar endereço de retorno
+    lw s0, 4(sp)                    # restaurar s0
+    addi sp, sp, 8
+
 
     ###########################################################################
     # Terminate program successfully
@@ -728,7 +772,7 @@ decide_next_token:
 	mv a2, s6 # a2 = address of second vector 
 	li a3, 4  # a3 = lenght of the vectors  
 	li s2, 0  # s2 = index 
-	li s3, 0  # s3 = max 
+	li s3, 0x80000000 # s3 = max 
 	mv s4, t2 # s4 = number of tokens in vocabulary 
 do:
 	mv a1,t0  # a1 = address of first vector
@@ -757,7 +801,6 @@ next:
 
 end_decide:
 	lw ra, 36(sp)
-	lw a0, 32(sp)
 	lw a1, 28(sp)
 	lw a2, 24(sp)
 	lw a3, 20(sp)
@@ -771,6 +814,8 @@ end_decide:
 	addi sp,sp, 40
 
 	jr ra
+
+
 
 
 
