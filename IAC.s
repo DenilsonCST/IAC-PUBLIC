@@ -196,11 +196,6 @@ main:
     li a6, CONST_DIMENSION
     jal ra, matrix_multiply
 
-###########################################################################
-# Compute scores for the last input token
-###########################################################################
-    la a0, SCORES_VECTOR
-
     ###########################################################################
     # Read W_K matrix
     ###########################################################################
@@ -230,7 +225,7 @@ main:
     ###########################################################################
     # Read W_V matrix
     ###########################################################################
-    # TODO
+   
 	la a0, W_V_FILENAME
 	la a1, MATRIX_BUFFER
 	li a2, CONST_BUFFER_SIZE
@@ -268,7 +263,7 @@ main:
     ###########################################################################
     # Read embeddings matrix
     ###########################################################################
-    # TODO
+  
 	la a0, EMBEDDINGS_FILENAME # a0 = address of the embeddings filename
     la a1, MATRIX_BUFFER       # a1 = address of the buffer where file contents will be stored
     li a2, CONST_BUFFER_SIZE   # a2 = maximum number of bytes to read
@@ -293,8 +288,8 @@ main:
     ###########################################################################
     # Convert input tokens to indices
     ###########################################################################
-    # TODO
-	la a0, INPUT_INDICES_VECTOR # a0 = address of the output vector for token indices
+  
+    la a0, INPUT_INDICES_VECTOR # a0 = address of the output vector for token indices
     la a2, INPUT_BUFFER         # a2 = address of the input text buffer
     la a3, VOCAB_BUFFER         # a3 = address of the vocabulary text buffer
     jal ra, tokens_to_indices   # convert each input word into its vocabulary index
@@ -305,7 +300,7 @@ main:
     ###########################################################################
     # Build input embeddings matrix
     ###########################################################################
-    # TODO
+   
 	la a0, INPUT_EMBEDDINGS_MATRIX # a0 = output matrix for input embeddings
     la a1, VOCAB_EMBEDDINGS_MATRIX # a1 = full vocabulary embeddings matrix
     la a2, INPUT_INDICES_VECTOR    # a2 = vector with the indices of the input tokens
@@ -315,7 +310,7 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    # TODO
+    
 	la a0, Q_MATRIX                # a0 = output matrix Q
     la a1, INPUT_EMBEDDINGS_MATRIX # a1 = input embeddings matrix E
     la a0, Q_MATRIX                  # return matrix 
@@ -334,7 +329,7 @@ main:
     ###########################################################################
     # Build matrix K
     ###########################################################################
-    # TODO
+   
 	la a0, K_MATRIX                # a0 = output matrix K
     la a1, INPUT_EMBEDDINGS_MATRIX # a1 = input embeddings matrix E
 
@@ -351,7 +346,7 @@ main:
     ###########################################################################
     # Build matrix V
     ###########################################################################
-    # TODO
+   
 	la a0, V_MATRIX                # a0 = output matrix V
     la a1, INPUT_EMBEDDINGS_MATRIX # a1 = input embeddings matrix E
 
@@ -366,12 +361,11 @@ main:
     jal ra, matrix_multiply        # V = E * W_V
 
 
-    ###########################################################################
-    # Compute scores for the last input token
-    ###########################################################################
-    # TODO
+###########################################################################
+# Compute scores for the last input token
+###########################################################################
+
 	la a0, SCORES_VECTOR
->>>>>>> 27e77e558e552c952d1a4fb18e8eb869312616f8
     la a1, Q_MATRIX
     la a2, K_MATRIX
     lw a3, INPUT_TOTAL_TOKENS
